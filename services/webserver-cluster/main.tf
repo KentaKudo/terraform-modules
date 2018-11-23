@@ -56,7 +56,7 @@ resource "aws_autoscaling_schedule" "scale_in_at_night" {
   count = "${var.enable_autoscaling}"
 
   scheduled_action_name  = "scale-in-at-night"
-  mix_size               = 2
+  min_size               = 2
   max_size               = 2
   desired_capacity       = 10
   recurrence             = "0 17 * * *"
