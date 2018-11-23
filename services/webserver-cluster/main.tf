@@ -119,7 +119,7 @@ resource "aws_cloudwatch_metric_alarm" "high_cpu_utilisation" {
   }
 
   comparison_operator = "GreaterThanThreshold"
-  eavluation_perios   = 1
+  evaluation_periods  = 1
   period              = 300
   statistic           = "Average"
   threshold           = 90
