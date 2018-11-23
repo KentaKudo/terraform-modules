@@ -29,3 +29,7 @@ variable "max_size" {
   description = "The maximum number of EC2 Instances in the ASG"
   default = 10
 }
+
+variable "enable_autoscaling" {
+  description = "If set to true, enable auto scaling"
+}
