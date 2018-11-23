@@ -1,7 +1,8 @@
 resource "aws_launch_configuration" "example" {
-  image_id        = "ami-40d28157"
+  image_id        = "${var.ami}"
   instance_type   = "${var.instance_type}"
   security_groups = ["${aws_security_group.instance.id}"]
+
   user_data       = "${data.template_file.user_data.rendered}"
 
   lifecycle {
@@ -108,6 +109,42 @@ resource "aws_security_group_rule" "allow_all_outbound" {
   cidr_blocks = ["0.0.0.0/0"]
 }
 
+resource "aws_cloudwatch_metric_alarm" "high_cpu_utilisation" {
+  alarm_name  = "${var.cluster_name}-high-cpu-utilisation"
+  namespace   = "AWS/EC2"
+  metric_name = "CPUUtilization"
+
+  dimensions = {
+    AutoScalingGroupName = "${aws_autoscaling_group.example.name}"
+  }
+
+  comparison_operator = "GreaterThanThreshold"
+  eavluation_perios   = 1
+  period              = 300
+  statistic           = "Average"
+  threshold           = 90
+  unit                = "Percent"
+}
+
+resource "aws_cloudwatch_metric_alarm" "low_cpu_credit_balance" {
+  count = "${format("%.1s", var.instance_type) == "t" ? 1 : 0}"
+
+  alarm_name  = "${var.cluster_name}-low-cpu-credit-balance"
+  namespace   = "AWS/EC2"
+  metric_name = "CPUCreditBalance"
+
+  dimensions = {
+    AutoScalingGroupName = "${aws_autoscaling_group.example.name}"
+  }
+
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = 1
+  period              = 300
+  statistic           = "Minimum"
+  threshold           = 10
+  unit                = "Count"
+}
+
 data "aws_availability_zones" "all" {}
 
 data "terraform_remote_state" "db" {
@@ -127,5 +164,6 @@ data "template_file" "user_data" {
     server_port = "${var.server_port}"
     db_address  = "${data.terraform_remote_state.db.address}"
     db_port     = "${data.terraform_remote_state.db.port}"
+    server_text = "${var.server_text}"
   }
 }
